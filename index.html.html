@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telecom Intelligence Dashboard - Live Analytics</title>
+    <meta name="description" content="Real-time telecommunications industry analysis with 143+ intelligence sources. Updated every 30 minutes.">
+    
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1f4e79 0%, #2c5aa0 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        
+        .header .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 15px 25px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #1f4e79;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .chart-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+        
+        .chart-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #1f4e79;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+            border-left: 4px solid #1f4e79;
+        }
+        
+        .metric-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #1f4e79;
+            margin-bottom: 8px;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 0.95em;
+            font-weight: 500;
+        }
+        
+        .status-bar {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .status-text {
+            color: #4CAF50;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .last-update {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .error {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #f44336;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+        
+        .footer a {
+            color: #1f4e79;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .header .stats {
+                gap: 15px;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .chart-container {
+                padding: 20px;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Telecom Intelligence Dashboard</h1>
+            <p>Real-time telecommunications industry analysis with <span id="header-sources">143+</span> intelligence sources</p>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="header-total">143</span>
+                    <div class="stat-label">Total Items</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="header-critical">4</span>
+                    <div class="stat-label">Critical</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="header-high">9</span>
+                    <div class="stat-label">High Priority</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="header-categories">4</span>
+                    <div class="stat-label">Categories</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Loading State -->
+            <div id="loading" class="loading">
+                <div class="loading-spinner"></div>
+                <h3>Loading Live Intelligence Data...</h3>
+                <p>Connecting to Google Sheets API and processing data...</p>
+            </div>
+            
+            <!-- Main Dashboard -->
+            <div id="dashboard" style="display: none;">
+                <!-- Key Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="total-items">143</div>
+                        <div class="metric-label">Total Intelligence Items</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="critical-items" style="color: #e74c3c;">4</div>
+                        <div class="metric-label">Critical Items</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="high-items" style="color: #f39c12;">9</div>
+                        <div class="metric-label">High Priority Items</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="active-categories" style="color: #27ae60;">4</div>
+                        <div class="metric-label">Active Categories</div>
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">Intelligence Distribution by Category</div>
+                        <div class="chart-wrapper">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">Intelligence by Importance Level</div>
+                        <div class="chart-wrapper">
+                            <canvas id="importanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Bar -->
+                <div class="status-bar">
+                    <div class="status-text">
+                        ⚡ Live Data - Updates Every 30 Minutes | 📊 <span id="source-count">143+</span> Intelligence Sources
+                    </div>
+                    <div class="last-update">
+                        Last Updated: <span id="last-update">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>
+                Powered by <a href="https://telecomanalysis.net" target="_blank">Telecom Analysis</a> | 
+                Data updates automatically every 30 minutes | 
+                <a href="https://telecomanalysis.net" target="_blank">Visit Main Website</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration with your specific details
+        const CONFIG = {
+            SHEET_ID: '1RmpfjtzKsR-ZqeiHxya8z_hfyOw32H4KOBQ5X5nCj8g',
+            API_KEY: 'AIzaSyCUkpPg0m4dXpO7Dx_b8AQmwKBvfNwQ4uE',
+            RANGE: 'Charts!A1:I40',
+            UPDATE_INTERVAL: 30 * 60 * 1000 // 30 minutes
+        };
+
+        // Global variables
+        let categoryChart = null;
+        let importanceChart = null;
+
+        // Main function to load dashboard
+        async function loadDashboard() {
+            try {
+                console.log('Loading dashboard data...');
+                const data = await fetchSheetData();
+                const processedData = processData(data);
+                
+                updateCharts(processedData);
+                updateMetrics(processedData);
+                updateLastUpdated();
+                
+                // Hide loading, show dashboard
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                
+                console.log('Dashboard loaded successfully');
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showError('Failed to load dashboard data. Please refresh the page or try again later.');
+            }
+        }
+
+        // Fetch data from Google Sheets API
+        async function fetchSheetData() {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${CONFIG.RANGE}?key=${CONFIG.API_KEY}`;
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.values || [];
+        }
+
+        // Process raw sheet data
+        function processData(rows) {
+            const data = {
+                categories: {},
+                importance: {},
+                totalItems: 0,
+                lastUpdated: null
+            };
+            
+            // Find category data (around rows 14-18)
+            for (let i = 14; i < Math.min(20, rows.length); i++) {
+                if (rows[i] && rows[i][0] && rows[i][1] && rows[i][2]) {
+                    const category = rows[i][0];
+                    const count = parseInt(rows[i][1]) || 0;
+                    
+                    if (category && count > 0 && !category.toLowerCase().includes('total')) {
+                        data.categories[category] = count;
+                        data.totalItems += count;
+                    }
+                }
+            }
+            
+            // Find importance data (around rows 29-34)
+            for (let i = 29; i < Math.min(35, rows.length); i++) {
+                if (rows[i] && rows[i][0] && rows[i][1]) {
+                    const level = rows[i][0];
+                    const count = parseInt(rows[i][1]) || 0;
+                    
+                    if (level && count >= 0 && !level.toLowerCase().includes('total')) {
+                        data.importance[level] = count;
+                    }
+                }
+            }
+            
+            // Get last updated (around row 11)
+            if (rows[10] && rows[10][1]) {
+                data.lastUpdated = rows[10][1];
+            }
+            
+            return data;
+        }
+
+        // Create/update charts
+        function updateCharts(data) {
+            // Category Pie Chart
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            
+            if (categoryChart) {
+                categoryChart.destroy();
+            }
+            
+            categoryChart = new Chart(categoryCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(data.categories),
+                    datasets: [{
+                        data: Object.values(data.categories),
+                        backgroundColor: [
+                            '#4CAF50', // Personal Data Protection - Green
+                            '#FF6384', // AI + Telecom - Red
+                            '#36A2EB', // Cybersecurity - Blue
+                            '#FFCE56', // Spectrum - Yellow
+                            '#9966FF', // Additional colors if needed
+                            '#FF9F40'
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Importance Bar Chart
+            const importanceCtx = document.getElementById('importanceChart').getContext('2d');
+            
+            if (importanceChart) {
+                importanceChart.destroy();
+            }
+            
+            importanceChart = new Chart(importanceCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data.importance),
+                    datasets: [{
+                        label: 'Count',
+                        data: Object.values(data.importance),
+                        backgroundColor: [
+                            '#e74c3c', // Critical - Red
+                            '#f39c12', // High - Orange
+                            '#f1c40f', // Medium - Yellow
+                            '#27ae60', // Low - Green
+                            '#95a5a6'  // Minimal - Gray
+                        ],
+                        borderWidth: 1,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.parsed.y} items`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 25
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update metrics
+        function updateMetrics(data) {
+            const totalItems = data.totalItems;
+            
+            // Update all total items displays
+            document.getElementById('total-items').textContent = totalItems;
+            document.getElementById('header-total').textContent = totalItems;
+            document.getElementById('header-sources').textContent = totalItems + '+';
+            document.getElementById('source-count').textContent = totalItems + '+';
+            
+            // Update individual metrics based on actual data
+            const importanceKeys = Object.keys(data.importance);
+            const criticalCount = data.importance[importanceKeys.find(key => key.toLowerCase().includes('critical'))] || 0;
+            const highCount = data.importance[importanceKeys.find(key => key.toLowerCase().includes('high'))] || 0;
+            const categoryCount = Object.keys(data.categories).length;
+            
+            document.getElementById('critical-items').textContent = criticalCount;
+            document.getElementById('header-critical').textContent = criticalCount;
+            document.getElementById('high-items').textContent = highCount;
+            document.getElementById('header-high').textContent = highCount;
+            document.getElementById('active-categories').textContent = categoryCount;
+            document.getElementById('header-categories').textContent = categoryCount;
+        }
+
+        // Update last updated timestamp
+        function updateLastUpdated() {
+            const now = new Date();
+            const timeString = now.toLocaleString();
+            document.getElementById('last-update').textContent = timeString;
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('loading').innerHTML = `
+                <div class="error">
+                    <h3>⚠️ Error Loading Dashboard</h3>
+                    <p>${message}</p>
+                    <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 20px; background: #1f4e79; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        🔄 Retry
+                    </button>
+                </div>
+            `;
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+            
+            // Set up automatic refresh every 30 minutes
+            setInterval(loadDashboard, CONFIG.UPDATE_INTERVAL);
+        });
+
+        // Manual refresh function
+        function refreshDashboard() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+            loadDashboard();
+        }
+    </script>
+</body>
+</html>
+
