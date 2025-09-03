@@ -17,6 +17,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            line-height: 1.6;
         }
 
         .dashboard-container {
@@ -26,6 +27,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.1);
             overflow: hidden;
+            min-height: 90vh;
         }
 
         .header {
@@ -44,13 +46,13 @@
         .header p {
             font-size: 1.2em;
             opacity: 0.9;
+            margin-bottom: 20px;
         }
 
         .last-updated {
             background: rgba(255,255,255,0.1);
             padding: 10px 20px;
             border-radius: 25px;
-            margin-top: 20px;
             display: inline-block;
             font-size: 0.9em;
         }
@@ -70,16 +72,19 @@
             text-align: center;
             box-shadow: 0 5px 20px rgba(0,0,0,0.08);
             transition: transform 0.3s ease;
+            border: 1px solid #e9ecef;
         }
 
         .metric-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         }
 
         .metric-number {
             font-size: 3em;
             font-weight: 700;
             margin-bottom: 10px;
+            display: block;
         }
 
         .metric-label {
@@ -95,6 +100,7 @@
 
         .charts-section {
             padding: 40px;
+            background: white;
         }
 
         .charts-grid {
@@ -105,10 +111,12 @@
         }
 
         .chart-container {
-            background: white;
+            background: #f8f9fa;
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            min-height: 400px;
         }
 
         .chart-title {
@@ -119,9 +127,16 @@
             text-align: center;
         }
 
+        .chart-canvas {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
         .news-section {
             background: #f8f9fa;
             padding: 40px;
+            border-top: 1px solid #e9ecef;
         }
 
         .section-header {
@@ -167,12 +182,19 @@
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .filter-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
         }
 
         .filter-btn.active {
             background: #1f4e79;
             color: white;
             border: none;
+            box-shadow: 0 3px 10px rgba(31, 78, 121, 0.3);
         }
 
         .news-loading {
@@ -199,6 +221,8 @@
 
         .news-container {
             display: none;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
         .news-item {
@@ -210,6 +234,7 @@
             border-left: 5px solid #ddd;
             transition: all 0.3s ease;
             position: relative;
+            border: 1px solid #e9ecef;
         }
 
         .news-item:hover {
@@ -308,6 +333,11 @@
             font-weight: 500;
         }
 
+        .load-more-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
         .load-more-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -320,7 +350,6 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
             display: none;
-            margin: 40px auto 0;
         }
 
         .load-more-btn:hover {
@@ -349,6 +378,15 @@
                 font-size: 1.1em;
                 padding-right: 80px;
             }
+            
+            .filter-tabs {
+                gap: 5px;
+            }
+            
+            .filter-btn {
+                padding: 8px 16px;
+                font-size: 0.8em;
+            }
         }
     </style>
 </head>
@@ -366,19 +404,19 @@
         <!-- Metrics Grid -->
         <div class="metrics-grid">
             <div class="metric-card">
-                <div class="metric-number total" id="totalItems">170</div>
+                <div class="metric-number total" id="totalItems">199</div>
                 <div class="metric-label">Total Intelligence Items</div>
             </div>
             <div class="metric-card">
-                <div class="metric-number critical" id="criticalItems">5</div>
+                <div class="metric-number critical" id="criticalItems">1</div>
                 <div class="metric-label">Critical Priority</div>
             </div>
             <div class="metric-card">
-                <div class="metric-number high" id="highItems">7</div>
+                <div class="metric-number high" id="highItems">0</div>
                 <div class="metric-label">High Priority</div>
             </div>
             <div class="metric-card">
-                <div class="metric-number medium" id="categories">4</div>
+                <div class="metric-number medium" id="categories">5</div>
                 <div class="metric-label">Active Categories</div>
             </div>
         </div>
@@ -388,11 +426,15 @@
             <div class="charts-grid">
                 <div class="chart-container">
                     <div class="chart-title">Priority Distribution</div>
-                    <canvas id="priorityChart"></canvas>
+                    <div class="chart-canvas">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
                 </div>
                 <div class="chart-container">
                     <div class="chart-title">Category Breakdown</div>
-                    <canvas id="categoryChart"></canvas>
+                    <div class="chart-canvas">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -408,13 +450,13 @@
             <!-- Filter Tabs -->
             <div class="filter-tabs">
                 <button class="filter-btn active" onclick="filterNews('all')" id="filter-all">
-                    All Items (170)
+                    All Items (199)
                 </button>
                 <button class="filter-btn" onclick="filterNews('critical')" id="filter-critical">
-                    Critical (5)
+                    Critical (1)
                 </button>
                 <button class="filter-btn" onclick="filterNews('high')" id="filter-high">
-                    High Priority (7)
+                    High Priority (0)
                 </button>
                 <button class="filter-btn" onclick="filterNews('personal-data')" id="filter-personal-data">
                     Personal Data Protection
@@ -442,9 +484,11 @@
             </div>
 
             <!-- Load More Button -->
-            <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreNews()">
-                Load More Intelligence
-            </button>
+            <div class="load-more-container">
+                <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreNews()">
+                    Load More Intelligence
+                </button>
+            </div>
         </div>
     </div>
 
@@ -637,33 +681,6 @@
                     priority: "Critical",
                     date: "2024-12-05",
                     source: "Security Research Institute"
-                },
-                {
-                    id: 6,
-                    title: "Machine Learning in Network Traffic Analysis",
-                    summary: "Advanced AI algorithms for real-time network traffic pattern recognition and anomaly detection in telecommunications networks.",
-                    category: "AI + Telecom",
-                    priority: "High",
-                    date: "2024-12-04",
-                    source: "AI Research Consortium"
-                },
-                {
-                    id: 7,
-                    title: "GDPR Compliance Framework for Telecom",
-                    summary: "Updated guidelines for telecommunications companies to ensure full compliance with European data protection regulations.",
-                    category: "Personal Data Protection",
-                    priority: "High",
-                    date: "2024-12-03",
-                    source: "Data Protection Authority"
-                },
-                {
-                    id: 8,
-                    title: "6GHz Spectrum Auction Results",
-                    summary: "Analysis of recent spectrum auction outcomes and their impact on 5G network expansion plans across major markets.",
-                    category: "Spectrum",
-                    priority: "Medium",
-                    date: "2024-12-02",
-                    source: "Spectrum Analysis Group"
                 }
             ];
         }
@@ -732,7 +749,8 @@
                     datasets: [{
                         data: Object.values(priorityCounts),
                         backgroundColor: ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60'],
-                        borderWidth: 0
+                        borderWidth: 2,
+                        borderColor: '#fff'
                     }]
                 },
                 options: {
@@ -740,7 +758,13 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom'
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
                         }
                     }
                 }
@@ -767,7 +791,8 @@
                     datasets: [{
                         data: Object.values(categoryCounts),
                         backgroundColor: ['#27ae60', '#f57c00', '#1976d2', '#7b1fa2'],
-                        borderWidth: 0
+                        borderWidth: 0,
+                        borderRadius: 8
                     }]
                 },
                 options: {
@@ -783,6 +808,14 @@
                             beginAtZero: true,
                             ticks: {
                                 stepSize: 1
+                            },
+                            grid: {
+                                color: '#f0f0f0'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
                             }
                         }
                     }
@@ -848,7 +881,7 @@
             // Show/hide load more button
             const loadMoreBtn = document.getElementById('loadMoreBtn');
             if (displayedItems < filteredItems.length) {
-                loadMoreBtn.style.display = 'block';
+                loadMoreBtn.style.display = 'inline-block';
             } else {
                 loadMoreBtn.style.display = 'none';
             }
