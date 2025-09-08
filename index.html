@@ -167,6 +167,8 @@
             margin-bottom: 15px;
             transition: all 0.3s ease;
             background: white;
+            cursor: pointer;
+            position: relative;
         }
 
         .news-item:hover {
@@ -250,6 +252,33 @@
         .news-source {
             color: #888;
             font-size: 0.85em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .read-more-btn {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .read-more-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .external-link-icon {
+            font-size: 0.7em;
         }
 
         .loading {
@@ -271,6 +300,15 @@
             color: rgba(255,255,255,0.8);
             margin-top: 30px;
             font-size: 0.9em;
+        }
+
+        .click-hint {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #667eea;
+            font-size: 0.8em;
+            opacity: 0.7;
         }
 
         @media (max-width: 768px) {
@@ -609,8 +647,11 @@
                 
                 const formattedDate = formatDate(item.date);
                 
+                const hasUrl = item.url && item.url.trim() && item.url !== '';
+                
                 return `
-                    <div class="news-item ${priorityClass}">
+                    <div class="news-item ${priorityClass}" ${hasUrl ? `onclick="openNewsLink('${item.url}')"` : ''}>
+                        ${hasUrl ? '<div class="click-hint">🔗 Click to read</div>' : ''}
                         <div class="news-meta">
                             <span class="news-date">${formattedDate}</span>
                             <div>
@@ -620,12 +661,22 @@
                         </div>
                         <div class="news-title-text">${item.title}</div>
                         <div class="news-summary">${item.summary}</div>
-                        <div class="news-source">Source: ${item.source}</div>
+                        <div class="news-source">
+                            <span>Source: ${item.source}</span>
+                            ${hasUrl ? `<a href="${item.url}" target="_blank" class="read-more-btn" onclick="event.stopPropagation()">Read Full Article <span class="external-link-icon">↗</span></a>` : ''}
+                        </div>
                     </div>
                 `;
             }).join('');
             
             newsList.innerHTML = newsHTML;
+        }
+
+        // Open news link
+        function openNewsLink(url) {
+            if (url && url.trim() && url !== '') {
+                window.open(url, '_blank');
+            }
         }
 
         // Format date for display
