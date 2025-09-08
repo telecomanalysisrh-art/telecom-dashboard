@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telecom Intelligence Dashboard - Live Updates</title>
+    <title>Telecom Intelligence Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -13,535 +13,399 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
-            line-height: 1.6;
+            color: #333;
         }
 
-        .dashboard-container {
+        .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-            overflow: hidden;
-            min-height: 90vh;
+            padding: 20px;
         }
 
         .header {
-            background: linear-gradient(135deg, #1f4e79 0%, #2c5aa0 100%);
-            color: white;
-            padding: 40px;
             text-align: center;
+            color: white;
+            margin-bottom: 30px;
         }
 
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
-            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .header p {
             font-size: 1.2em;
             opacity: 0.9;
-            margin-bottom: 20px;
-        }
-
-        .last-updated {
-            background: rgba(255,255,255,0.1);
-            padding: 10px 20px;
-            border-radius: 25px;
-            display: inline-block;
-            font-size: 0.9em;
         }
 
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            padding: 40px;
-            background: #f8f9fa;
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .metric-card {
-            background: white;
-            padding: 30px;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
+            padding: 25px;
             text-align: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
-            border: 1px solid #e9ecef;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .metric-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
         }
 
         .metric-number {
             font-size: 3em;
-            font-weight: 700;
+            font-weight: bold;
             margin-bottom: 10px;
-            display: block;
         }
 
         .metric-label {
-            color: #666;
             font-size: 1.1em;
+            color: #666;
             font-weight: 500;
         }
 
-        .critical { color: #e74c3c; }
-        .high { color: #f39c12; }
-        .medium { color: #f1c40f; }
-        .total { color: #1f4e79; }
-
         .charts-section {
-            padding: 40px;
-            background: white;
-        }
-
-        .charts-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            gap: 30px;
             margin-bottom: 40px;
         }
 
         .chart-container {
-            background: #f8f9fa;
-            padding: 30px;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            border: 1px solid #e9ecef;
-            min-height: 400px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         .chart-title {
             font-size: 1.3em;
             font-weight: 600;
             margin-bottom: 20px;
-            color: #1f4e79;
+            color: #333;
             text-align: center;
         }
 
         .chart-canvas {
             position: relative;
             height: 300px;
-            width: 100%;
         }
 
         .news-section {
-            background: #f8f9fa;
-            padding: 40px;
-            border-top: 1px solid #e9ecef;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        .section-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .section-header h2 {
-            color: #1f4e79;
-            font-size: 2.2em;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .section-header p {
-            color: #666;
-            font-size: 1.2em;
-            margin-bottom: 20px;
-        }
-
-        .section-divider {
-            width: 100px;
-            height: 4px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0 auto;
-            border-radius: 2px;
-        }
-
-        .filter-tabs {
+        .news-header {
             display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
             flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .news-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .filter-buttons {
+            display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .filter-btn {
-            background: #f8f9fa;
-            color: #666;
-            border: 1px solid #ddd;
-            padding: 12px 24px;
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: transparent;
+            color: #667eea;
             border-radius: 25px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
             font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
-        .filter-btn:hover {
-            background: #e9ecef;
-            transform: translateY(-1px);
-        }
-
-        .filter-btn.active {
-            background: #1f4e79;
+        .filter-btn:hover, .filter-btn.active {
+            background: #667eea;
             color: white;
-            border: none;
-            box-shadow: 0 3px 10px rgba(31, 78, 121, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .news-loading {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1f4e79;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .news-container {
-            display: none;
-            max-width: 1000px;
-            margin: 0 auto;
+        .news-list {
+            max-height: 600px;
+            overflow-y: auto;
         }
 
         .news-item {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            border-left: 5px solid #ddd;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
             transition: all 0.3s ease;
-            position: relative;
-            border: 1px solid #e9ecef;
+            background: white;
         }
 
         .news-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-color: #667eea;
         }
 
         .news-item.critical {
-            border-left-color: #e74c3c;
+            border-left: 5px solid #e74c3c;
             background: linear-gradient(135deg, #fff 0%, #fdf2f2 100%);
         }
 
         .news-item.high {
-            border-left-color: #f39c12;
-            background: linear-gradient(135deg, #fff 0%, #fef9f2 100%);
+            border-left: 5px solid #f39c12;
+            background: linear-gradient(135deg, #fff 0%, #fef9f0 100%);
         }
 
         .news-item.medium {
-            border-left-color: #f1c40f;
-            background: linear-gradient(135deg, #fff 0%, #fefdf2 100%);
-        }
-
-        .news-item.low {
-            border-left-color: #27ae60;
-            background: linear-gradient(135deg, #fff 0%, #f2fdf6 100%);
-        }
-
-        .priority-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .priority-critical { background: #e74c3c; color: white; }
-        .priority-high { background: #f39c12; color: white; }
-        .priority-medium { background: #f1c40f; color: #333; }
-        .priority-low { background: #27ae60; color: white; }
-
-        .category-tag {
-            display: inline-block;
-            background: #f8f9fa;
-            color: #666;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 0.85em;
-            margin-right: 8px;
-            margin-bottom: 8px;
-            border: 1px solid #e9ecef;
-        }
-
-        .category-personal-data { background: #e8f5e8; color: #27ae60; border-color: #27ae60; }
-        .category-ai-telecom { background: #fff3e0; color: #f57c00; border-color: #f57c00; }
-        .category-cybersecurity { background: #e3f2fd; color: #1976d2; border-color: #1976d2; }
-        .category-spectrum { background: #f3e5f5; color: #7b1fa2; border-color: #7b1fa2; }
-
-        .news-title {
-            color: #1f4e79;
-            font-size: 1.3em;
-            font-weight: 600;
-            margin-bottom: 12px;
-            line-height: 1.4;
-            padding-right: 100px;
-        }
-
-        .news-summary {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 15px;
-            font-size: 1em;
+            border-left: 5px solid #3498db;
+            background: linear-gradient(135deg, #fff 0%, #f0f8ff 100%);
         }
 
         .news-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 10px;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #f0f0f0;
         }
 
         .news-date {
-            color: #888;
+            color: #666;
             font-size: 0.9em;
+        }
+
+        .priority-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-5 { background: #e74c3c; color: white; }
+        .priority-4 { background: #f39c12; color: white; }
+        .priority-3 { background: #3498db; color: white; }
+        .priority-2 { background: #95a5a6; color: white; }
+        .priority-1 { background: #bdc3c7; color: #333; }
+
+        .category-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .category-cybersecurity { background: #ff6b6b; color: white; }
+        .category-ai-telecom { background: #4ecdc4; color: white; }
+        .category-spectrum { background: #45b7d1; color: white; }
+        .category-regulations { background: #96ceb4; color: white; }
+        .category-personal-data { background: #feca57; color: white; }
+
+        .news-title-text {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .news-summary {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin-bottom: 10px;
         }
 
         .news-source {
-            color: #1f4e79;
-            font-size: 0.9em;
-            font-weight: 500;
+            color: #888;
+            font-size: 0.85em;
         }
 
-        .load-more-container {
+        .loading {
             text-align: center;
-            margin-top: 40px;
-        }
-
-        .load-more-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
+            padding: 40px;
+            color: #666;
             font-size: 1.1em;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            display: none;
         }
 
-        .load-more-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #e74c3c;
+            font-size: 1.1em;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            margin-top: 30px;
+            font-size: 0.9em;
         }
 
         @media (max-width: 768px) {
-            .charts-grid {
+            .charts-section {
                 grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .header h1 {
                 font-size: 2em;
             }
             
-            .metric-number {
-                font-size: 2.5em;
+            .news-header {
+                flex-direction: column;
+                align-items: stretch;
             }
             
-            .news-item {
-                padding: 20px;
+            .filter-buttons {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
             }
             
-            .news-title {
-                font-size: 1.1em;
-                padding-right: 80px;
-            }
-            
-            .filter-tabs {
-                gap: 5px;
-            }
-            
-            .filter-btn {
-                padding: 8px 16px;
-                font-size: 0.8em;
+            .container {
+                padding: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <!-- Header -->
+    <div class="container">
         <div class="header">
             <h1>📊 Telecom Intelligence Dashboard</h1>
-            <p>Real-time monitoring and analysis of telecommunications industry intelligence</p>
-            <div class="last-updated" id="lastUpdated">
-                🔄 Last Updated: Loading...
-            </div>
+            <p>Real-time intelligence monitoring and analysis</p>
         </div>
 
-        <!-- Metrics Grid -->
         <div class="metrics-grid">
             <div class="metric-card">
-                <div class="metric-number total" id="totalItems">199</div>
-                <div class="metric-label">Total Intelligence Items</div>
+                <div class="metric-number" style="color: #4ade80;" id="totalItems">Loading...</div>
+                <div class="metric-label">Intelligence Items</div>
             </div>
             <div class="metric-card">
-                <div class="metric-number critical" id="criticalItems">1</div>
-                <div class="metric-label">Critical Priority</div>
+                <div class="metric-number" style="color: #e74c3c;" id="criticalItems">Loading...</div>
+                <div class="metric-label">Critical Alerts</div>
             </div>
             <div class="metric-card">
-                <div class="metric-number high" id="highItems">0</div>
+                <div class="metric-number" style="color: #f59e0b;" id="highPriorityItems">Loading...</div>
                 <div class="metric-label">High Priority</div>
             </div>
             <div class="metric-card">
-                <div class="metric-number medium" id="categories">5</div>
+                <div class="metric-number" style="color: #06b6d4;" id="activeCategories">Loading...</div>
                 <div class="metric-label">Active Categories</div>
             </div>
         </div>
 
-        <!-- Charts Section -->
         <div class="charts-section">
-            <div class="charts-grid">
-                <div class="chart-container">
-                    <div class="chart-title">Priority Distribution</div>
-                    <div class="chart-canvas">
-                        <canvas id="priorityChart"></canvas>
-                    </div>
+            <div class="chart-container">
+                <div class="chart-title">Priority Distribution</div>
+                <div class="chart-canvas">
+                    <canvas id="priorityChart"></canvas>
                 </div>
-                <div class="chart-container">
-                    <div class="chart-title">Category Breakdown</div>
-                    <div class="chart-canvas">
-                        <canvas id="categoryChart"></canvas>
-                    </div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">Category Breakdown</div>
+                <div class="chart-canvas">
+                    <canvas id="categoryChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- News Section -->
         <div class="news-section">
-            <div class="section-header">
-                <h2>📰 Latest Intelligence Updates</h2>
-                <p>Real-time intelligence items powering the dashboard analytics above</p>
-                <div class="section-divider"></div>
+            <div class="news-header">
+                <div class="news-title">📰 Latest Intelligence Updates</div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All Items</button>
+                    <button class="filter-btn" data-filter="critical">Critical (5)</button>
+                    <button class="filter-btn" data-filter="high">High Priority (4)</button>
+                    <button class="filter-btn" data-filter="cybersecurity">Cybersecurity</button>
+                    <button class="filter-btn" data-filter="ai-telecom">AI + Telecom</button>
+                    <button class="filter-btn" data-filter="spectrum">Spectrum</button>
+                </div>
             </div>
+            <div class="news-list" id="newsList">
+                <div class="loading">Loading latest intelligence updates...</div>
+            </div>
+        </div>
 
-            <!-- Filter Tabs -->
-            <div class="filter-tabs">
-                <button class="filter-btn active" onclick="filterNews('all')" id="filter-all">
-                    All Items (199)
-                </button>
-                <button class="filter-btn" onclick="filterNews('critical')" id="filter-critical">
-                    Critical (1)
-                </button>
-                <button class="filter-btn" onclick="filterNews('high')" id="filter-high">
-                    High Priority (0)
-                </button>
-                <button class="filter-btn" onclick="filterNews('personal-data')" id="filter-personal-data">
-                    Personal Data Protection
-                </button>
-                <button class="filter-btn" onclick="filterNews('ai-telecom')" id="filter-ai-telecom">
-                    AI + Telecom
-                </button>
-                <button class="filter-btn" onclick="filterNews('cybersecurity')" id="filter-cybersecurity">
-                    Cybersecurity
-                </button>
-                <button class="filter-btn" onclick="filterNews('spectrum')" id="filter-spectrum">
-                    Spectrum
-                </button>
-            </div>
-
-            <!-- Loading State -->
-            <div class="news-loading" id="newsLoading">
-                <div class="spinner"></div>
-                <p style="font-size: 1.1em;">Loading latest intelligence updates...</p>
-            </div>
-
-            <!-- News Container -->
-            <div class="news-container" id="newsContainer">
-                <!-- News items will be dynamically loaded here -->
-            </div>
-
-            <!-- Load More Button -->
-            <div class="load-more-container">
-                <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreNews()">
-                    Load More Intelligence
-                </button>
-            </div>
+        <div class="last-updated">
+            Last updated: <span id="lastUpdate">Just now</span> • Updates every 30 minutes
         </div>
     </div>
 
     <script>
-        // Configuration
+        // Configuration - READY TO USE WITH YOUR API KEY
         const CONFIG = {
             SHEET_ID: '1RmpfjtzKsR-ZqeiHxya8z_hfyOw32H4KOBQ5X5nCj8g',
             API_KEY: 'AIzaSyD7dSwXHfYDixVCOUln-O--62IwXwyf5uM',
-            RANGE: 'Sheet1!A1:Z1000',
-            ITEMS_PER_PAGE: 10,
+            RANGE: 'Sheet1!A:H',
             UPDATE_INTERVAL: 30 * 60 * 1000 // 30 minutes
         };
 
         // Global variables
-        let allNewsItems = [];
-        let filteredItems = [];
-        let currentFilter = 'all';
-        let displayedItems = 0;
-        let priorityChart, categoryChart;
+        let allData = [];
+        let priorityChart = null;
+        let categoryChart = null;
 
         // Initialize dashboard
         async function initializeDashboard() {
-            console.log('Initializing dashboard...');
+            console.log('🚀 Initializing Telecom Intelligence Dashboard...');
             
-            // Update last updated time
-            updateLastUpdatedTime();
-            
-            // Load data and create charts
-            await loadDashboardData();
-            
-            // Set up automatic updates
-            setInterval(async () => {
-                console.log('Auto-updating dashboard...');
-                await loadDashboardData();
-                updateLastUpdatedTime();
-            }, CONFIG.UPDATE_INTERVAL);
+            try {
+                await loadData();
+                setupEventListeners();
+                
+                // Auto-refresh every 30 minutes
+                setInterval(loadData, CONFIG.UPDATE_INTERVAL);
+                
+                console.log('✅ Dashboard initialized successfully');
+            } catch (error) {
+                console.error('❌ Failed to initialize dashboard:', error);
+                showError('Failed to load dashboard. Please check your internet connection.');
+            }
         }
 
-        // Update last updated time
-        function updateLastUpdatedTime() {
-            const now = new Date();
-            const timeString = now.toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('lastUpdated').textContent = `🔄 Last Updated: ${timeString}`;
-        }
-
-        // Load dashboard data
-        async function loadDashboardData() {
+        // Load data from Google Sheets
+        async function loadData() {
+            console.log('📊 Loading data from Google Sheets...');
+            
             try {
                 const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${CONFIG.RANGE}?key=${CONFIG.API_KEY}`;
                 const response = await fetch(url);
@@ -551,192 +415,75 @@
                 }
                 
                 const data = await response.json();
-                const rows = data.values || [];
                 
-                // Process data
-                allNewsItems = processSheetData(rows);
-                filteredItems = [...allNewsItems];
+                if (!data.values || data.values.length < 2) {
+                    throw new Error('No data found in spreadsheet');
+                }
                 
-                // Update metrics
+                console.log(`📈 Loaded ${data.values.length - 1} intelligence items`);
+                
+                // Process the data (skip header row)
+                allData = data.values.slice(1).map((row, index) => {
+                    return {
+                        id: index,
+                        date: row[0] || '',
+                        source: row[1] || '',
+                        title: row[2] || '',
+                        category: row[3] || '',
+                        importance: parseInt(row[4]) || 2,
+                        summary: row[5] || '',
+                        keywords: row[6] || '',
+                        url: row[7] || ''
+                    };
+                }).filter(item => item.title); // Remove empty rows
+                
+                console.log(`✅ Processed ${allData.length} valid intelligence items`);
+                
                 updateMetrics();
-                
-                // Create/update charts
-                createCharts();
-                
-                // Display news
-                displayNews();
-                
-                // Hide loading, show content
-                document.getElementById('newsLoading').style.display = 'none';
-                document.getElementById('newsContainer').style.display = 'block';
-                
-                console.log('Dashboard data loaded successfully');
+                updateCharts();
+                updateNewsList();
+                updateLastUpdated();
                 
             } catch (error) {
-                console.error('Error loading dashboard data:', error);
-                loadSampleData();
+                console.error('❌ Error loading data:', error);
+                showError(`Error loading data: ${error.message}`);
             }
         }
 
-        // Process sheet data
-        function processSheetData(rows) {
-            const items = [];
-            
-            for (let i = 1; i < Math.min(rows.length, 200); i++) {
-                const row = rows[i];
-                
-                if (row && row.length > 3) {
-                    const item = {
-                        title: row[1] || `Intelligence Item ${i}`,
-                        summary: row[2] || 'Detailed intelligence analysis and insights.',
-                        category: row[3] || getRandomCategory(),
-                        priority: row[4] || getRandomPriority(),
-                        date: row[5] || new Date().toLocaleDateString(),
-                        source: row[6] || 'Intelligence Network',
-                        url: row[7] || '#',
-                        id: i
-                    };
-                    
-                    if (item.title.length > 3) {
-                        items.push(item);
-                    }
-                }
-            }
-            
-            if (items.length === 0) {
-                return getSampleData();
-            }
-            
-            return items.sort((a, b) => {
-                const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
-                const aPriority = priorityOrder[a.priority] || 1;
-                const bPriority = priorityOrder[b.priority] || 1;
-                
-                if (aPriority !== bPriority) {
-                    return bPriority - aPriority;
-                }
-                
-                return new Date(b.date) - new Date(a.date);
-            });
-        }
-
-        // Load sample data as fallback
-        function loadSampleData() {
-            console.log('Loading sample data...');
-            allNewsItems = getSampleData();
-            filteredItems = [...allNewsItems];
-            
-            updateMetrics();
-            createCharts();
-            displayNews();
-            
-            document.getElementById('newsLoading').style.display = 'none';
-            document.getElementById('newsContainer').style.display = 'block';
-        }
-
-        // Get sample data
-        function getSampleData() {
-            return [
-                {
-                    id: 1,
-                    title: "5G Network Security Enhancement Protocol Released",
-                    summary: "New security protocols for 5G infrastructure addressing critical vulnerabilities in network slicing and edge computing implementations.",
-                    category: "Cybersecurity",
-                    priority: "Critical",
-                    date: "2024-12-09",
-                    source: "Telecom Security Alliance"
-                },
-                {
-                    id: 2,
-                    title: "AI-Powered Network Optimization Breakthrough",
-                    summary: "Revolutionary machine learning algorithms demonstrate 40% improvement in network efficiency and predictive maintenance capabilities.",
-                    category: "AI + Telecom",
-                    priority: "High",
-                    date: "2024-12-08",
-                    source: "Tech Innovation Report"
-                },
-                {
-                    id: 3,
-                    title: "Personal Data Protection Compliance Update",
-                    summary: "New regulatory requirements for telecom operators regarding customer data handling and privacy protection measures.",
-                    category: "Personal Data Protection",
-                    priority: "High",
-                    date: "2024-12-07",
-                    source: "Regulatory Affairs"
-                },
-                {
-                    id: 4,
-                    title: "Spectrum Allocation Changes in European Markets",
-                    summary: "Significant updates to spectrum licensing policies affecting 5G deployment strategies across European telecommunications markets.",
-                    category: "Spectrum",
-                    priority: "Medium",
-                    date: "2024-12-06",
-                    source: "European Telecom Authority"
-                },
-                {
-                    id: 5,
-                    title: "Critical Infrastructure Vulnerability Assessment",
-                    summary: "Comprehensive analysis of potential security risks in telecommunications infrastructure with recommended mitigation strategies.",
-                    category: "Cybersecurity",
-                    priority: "Critical",
-                    date: "2024-12-05",
-                    source: "Security Research Institute"
-                }
-            ];
-        }
-
-        // Helper functions
-        function getRandomCategory() {
-            const categories = ['Personal Data Protection', 'AI + Telecom', 'Cybersecurity', 'Spectrum'];
-            return categories[Math.floor(Math.random() * categories.length)];
-        }
-
-        function getRandomPriority() {
-            const priorities = ['Critical', 'High', 'Medium', 'Low'];
-            const weights = [0.1, 0.2, 0.4, 0.3];
-            const random = Math.random();
-            let sum = 0;
-            for (let i = 0; i < weights.length; i++) {
-                sum += weights[i];
-                if (random <= sum) return priorities[i];
-            }
-            return 'Low';
-        }
-
-        // Update metrics
+        // Update metrics cards
         function updateMetrics() {
-            const total = allNewsItems.length;
-            const critical = allNewsItems.filter(item => item.priority === 'Critical').length;
-            const high = allNewsItems.filter(item => item.priority === 'High').length;
-            const categories = [...new Set(allNewsItems.map(item => item.category))].length;
+            const totalItems = allData.length;
+            const criticalItems = allData.filter(item => item.importance === 5).length;
+            const highPriorityItems = allData.filter(item => item.importance === 4).length;
+            const categories = [...new Set(allData.map(item => item.category))].filter(cat => cat).length;
             
-            document.getElementById('totalItems').textContent = total;
-            document.getElementById('criticalItems').textContent = critical;
-            document.getElementById('highItems').textContent = high;
-            document.getElementById('categories').textContent = categories;
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('criticalItems').textContent = criticalItems;
+            document.getElementById('highPriorityItems').textContent = highPriorityItems;
+            document.getElementById('activeCategories').textContent = categories;
             
-            // Update filter button counts
-            document.getElementById('filter-all').textContent = `All Items (${total})`;
-            document.getElementById('filter-critical').textContent = `Critical (${critical})`;
-            document.getElementById('filter-high').textContent = `High Priority (${high})`;
+            console.log(`📊 Metrics updated: ${totalItems} total, ${criticalItems} critical, ${highPriorityItems} high priority, ${categories} categories`);
         }
 
-        // Create charts
-        function createCharts() {
-            createPriorityChart();
-            createCategoryChart();
+        // Update charts
+        function updateCharts() {
+            updatePriorityChart();
+            updateCategoryChart();
         }
 
-        // Create priority chart
-        function createPriorityChart() {
-            const ctx = document.getElementById('priorityChart').getContext('2d');
-            
-            const priorityCounts = {
-                'Critical': allNewsItems.filter(item => item.priority === 'Critical').length,
-                'High': allNewsItems.filter(item => item.priority === 'High').length,
-                'Medium': allNewsItems.filter(item => item.priority === 'Medium').length,
-                'Low': allNewsItems.filter(item => item.priority === 'Low').length
+        // Update priority distribution chart
+        function updatePriorityChart() {
+            const priorityData = {
+                1: 0, 2: 0, 3: 0, 4: 0, 5: 0
             };
+            
+            allData.forEach(item => {
+                if (item.importance >= 1 && item.importance <= 5) {
+                    priorityData[item.importance]++;
+                }
+            });
+            
+            const ctx = document.getElementById('priorityChart').getContext('2d');
             
             if (priorityChart) {
                 priorityChart.destroy();
@@ -745,10 +492,10 @@
             priorityChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: Object.keys(priorityCounts),
+                    labels: ['Low (1)', 'Medium (2)', 'Medium-High (3)', 'High (4)', 'Critical (5)'],
                     datasets: [{
-                        data: Object.values(priorityCounts),
-                        backgroundColor: ['#e74c3c', '#f39c12', '#f1c40f', '#27ae60'],
+                        data: [priorityData[1], priorityData[2], priorityData[3], priorityData[4], priorityData[5]],
+                        backgroundColor: ['#bdc3c7', '#95a5a6', '#3498db', '#f39c12', '#e74c3c'],
                         borderWidth: 2,
                         borderColor: '#fff'
                     }]
@@ -761,9 +508,7 @@
                             position: 'bottom',
                             labels: {
                                 padding: 20,
-                                font: {
-                                    size: 12
-                                }
+                                usePointStyle: true
                             }
                         }
                     }
@@ -771,28 +516,35 @@
             });
         }
 
-        // Create category chart
-        function createCategoryChart() {
-            const ctx = document.getElementById('categoryChart').getContext('2d');
+        // Update category distribution chart
+        function updateCategoryChart() {
+            const categoryData = {};
             
-            const categoryCounts = {};
-            allNewsItems.forEach(item => {
-                categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
+            allData.forEach(item => {
+                if (item.category) {
+                    categoryData[item.category] = (categoryData[item.category] || 0) + 1;
+                }
             });
+            
+            const ctx = document.getElementById('categoryChart').getContext('2d');
             
             if (categoryChart) {
                 categoryChart.destroy();
             }
             
+            const categories = Object.keys(categoryData);
+            const values = Object.values(categoryData);
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff'];
+            
             categoryChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(categoryCounts),
+                    labels: categories,
                     datasets: [{
-                        data: Object.values(categoryCounts),
-                        backgroundColor: ['#27ae60', '#f57c00', '#1976d2', '#7b1fa2'],
-                        borderWidth: 0,
-                        borderRadius: 8
+                        data: values,
+                        backgroundColor: colors.slice(0, categories.length),
+                        borderRadius: 8,
+                        borderSkipped: false,
                     }]
                 },
                 options: {
@@ -808,14 +560,11 @@
                             beginAtZero: true,
                             ticks: {
                                 stepSize: 1
-                            },
-                            grid: {
-                                color: '#f0f0f0'
                             }
                         },
                         x: {
-                            grid: {
-                                display: false
+                            ticks: {
+                                maxRotation: 45
                             }
                         }
                     }
@@ -823,138 +572,125 @@
             });
         }
 
-        // Filter news
-        function filterNews(filterType) {
-            currentFilter = filterType;
-            displayedItems = 0;
+        // Update news list
+        function updateNewsList(filter = 'all') {
+            const newsList = document.getElementById('newsList');
+            let filteredData = [...allData];
             
-            // Update button styles
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.getElementById(`filter-${filterType}`).classList.add('active');
-            
-            // Filter items
-            switch (filterType) {
-                case 'all':
-                    filteredItems = [...allNewsItems];
-                    break;
-                case 'critical':
-                    filteredItems = allNewsItems.filter(item => item.priority === 'Critical');
-                    break;
-                case 'high':
-                    filteredItems = allNewsItems.filter(item => item.priority === 'High');
-                    break;
-                case 'personal-data':
-                    filteredItems = allNewsItems.filter(item => item.category.includes('Personal Data'));
-                    break;
-                case 'ai-telecom':
-                    filteredItems = allNewsItems.filter(item => item.category.includes('AI'));
-                    break;
-                case 'cybersecurity':
-                    filteredItems = allNewsItems.filter(item => item.category.includes('Cybersecurity'));
-                    break;
-                case 'spectrum':
-                    filteredItems = allNewsItems.filter(item => item.category.includes('Spectrum'));
-                    break;
-                default:
-                    filteredItems = [...allNewsItems];
+            // Apply filters
+            if (filter === 'critical') {
+                filteredData = filteredData.filter(item => item.importance === 5);
+            } else if (filter === 'high') {
+                filteredData = filteredData.filter(item => item.importance === 4);
+            } else if (filter !== 'all') {
+                filteredData = filteredData.filter(item => 
+                    item.category.toLowerCase().replace(/\s+/g, '-').includes(filter.toLowerCase())
+                );
             }
             
-            displayNews();
-        }
-
-        // Display news
-        function displayNews() {
-            const container = document.getElementById('newsContainer');
-            const itemsToShow = filteredItems.slice(0, displayedItems + CONFIG.ITEMS_PER_PAGE);
-            
-            container.innerHTML = '';
-            
-            itemsToShow.forEach(item => {
-                const newsElement = createNewsElement(item);
-                container.appendChild(newsElement);
+            // Sort by importance (highest first), then by date
+            filteredData.sort((a, b) => {
+                if (b.importance !== a.importance) {
+                    return b.importance - a.importance;
+                }
+                return new Date(b.date) - new Date(a.date);
             });
             
-            displayedItems = itemsToShow.length;
-            
-            // Show/hide load more button
-            const loadMoreBtn = document.getElementById('loadMoreBtn');
-            if (displayedItems < filteredItems.length) {
-                loadMoreBtn.style.display = 'inline-block';
-            } else {
-                loadMoreBtn.style.display = 'none';
-            }
-        }
-
-        // Create news element
-        function createNewsElement(item) {
-            const div = document.createElement('div');
-            div.className = `news-item ${item.priority.toLowerCase()}`;
-            
-            const categoryClass = getCategoryClass(item.category);
-            const priorityClass = `priority-${item.priority.toLowerCase()}`;
-            
-            div.innerHTML = `
-                <div class="priority-badge ${priorityClass}">${item.priority}</div>
-                <div class="news-title">${item.title}</div>
-                <div class="news-summary">${item.summary}</div>
-                <div class="category-tag ${categoryClass}">${item.category}</div>
-                <div class="news-meta">
-                    <span class="news-date">📅 ${formatDate(item.date)}</span>
-                    <span class="news-source">📰 ${item.source}</span>
-                </div>
-            `;
-            
-            if (item.url && item.url !== '#') {
-                div.style.cursor = 'pointer';
-                div.onclick = () => window.open(item.url, '_blank');
+            if (filteredData.length === 0) {
+                newsList.innerHTML = '<div class="loading">No items found for this filter.</div>';
+                return;
             }
             
-            return div;
-        }
-
-        // Get category class
-        function getCategoryClass(category) {
-            const categoryMap = {
-                'Personal Data Protection': 'category-personal-data',
-                'AI + Telecom': 'category-ai-telecom',
-                'Cybersecurity': 'category-cybersecurity',
-                'Spectrum': 'category-spectrum'
-            };
+            const newsHTML = filteredData.map(item => {
+                const priorityClass = item.importance >= 5 ? 'critical' : 
+                                   item.importance >= 4 ? 'high' : 'medium';
+                
+                const categoryClass = item.category.toLowerCase().replace(/\s+/g, '-').replace(/\+/g, '');
+                
+                const formattedDate = formatDate(item.date);
+                
+                return `
+                    <div class="news-item ${priorityClass}">
+                        <div class="news-meta">
+                            <span class="news-date">${formattedDate}</span>
+                            <div>
+                                <span class="priority-badge priority-${item.importance}">Priority ${item.importance}</span>
+                                <span class="category-badge category-${categoryClass}">${item.category}</span>
+                            </div>
+                        </div>
+                        <div class="news-title-text">${item.title}</div>
+                        <div class="news-summary">${item.summary}</div>
+                        <div class="news-source">Source: ${item.source}</div>
+                    </div>
+                `;
+            }).join('');
             
-            return categoryMap[category] || 'category-tag';
+            newsList.innerHTML = newsHTML;
         }
 
-        // Format date
-         function formatDate(dateString) {
-            if (!dateString) return ""; // Handle empty date strings
+        // Format date for display
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown date';
+            
             try {
-                // Try to parse as YYYY-MM-DD
-                let date = new Date(dateString + "T00:00:00"); // Add T00:00:00 for consistent parsing
+                const date = new Date(dateString);
                 if (isNaN(date.getTime())) {
-                    // If YYYY-MM-DD fails, try other common formats
-                    date = new Date(dateString);
+                    return dateString; // Return original if can't parse
                 }
                 
-                if (!isNaN(date.getTime())) {
-                    return date.toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                    });
-                } else {
-                    return ""; // Return empty string if date is still invalid
-                }
-            } catch (e) {
-                console.error("Error formatting date:", dateString, e);
-                return ""; // Return empty string on error
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            } catch (error) {
+                return dateString;
             }
         }
 
-        // Load more news
-        function loadMoreNews() {
-            displayNews();
+        // Setup event listeners
+        function setupEventListeners() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    button.classList.add('active');
+                    
+                    // Update news list with filter
+                    const filter = button.getAttribute('data-filter');
+                    updateNewsList(filter);
+                });
+            });
+        }
+
+        // Update last updated timestamp
+        function updateLastUpdated() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            document.getElementById('lastUpdate').textContent = timeString;
+        }
+
+        // Show error message
+        function showError(message) {
+            const newsList = document.getElementById('newsList');
+            newsList.innerHTML = `<div class="error">${message}</div>`;
+            
+            // Update metrics with error state
+            document.getElementById('totalItems').textContent = 'Error';
+            document.getElementById('criticalItems').textContent = 'Error';
+            document.getElementById('highPriorityItems').textContent = 'Error';
+            document.getElementById('activeCategories').textContent = 'Error';
         }
 
         // Initialize when DOM is ready
