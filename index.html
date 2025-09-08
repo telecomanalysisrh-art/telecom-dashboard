@@ -60,7 +60,7 @@
         .header-text {
             color: white;
             text-decoration: none;
-            font-size: 1.4em;
+            font-size: 1.8em;
             font-weight: 700;
             transition: all 0.3s ease;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
@@ -401,7 +401,7 @@
             }
 
             .header-text {
-                font-size: 1.2em;
+                font-size: 1.4em;
                 text-align: center;
             }
 
@@ -449,7 +449,7 @@
     <div class="header">
         <div class="header-content">
             <div class="logo-container">
-                <img src="20240525_TALogo.jpg" alt="TelecomAnalysis.net Logo" class="logo">
+                <img src="20240525_TA Logo.jpg" alt="TelecomAnalysis.net Logo" class="logo">
             </div>
             <a href="https://telecomanalysis.net" target="_blank" class="header-text">
                 🌐 Visit TelecomAnalysis.net - Your Source for Telecom Intelligence
@@ -526,7 +526,7 @@
     <div class="footer">
         <div class="footer-content">
             <div class="footer-branding">
-                <img src="20240525_TALogo.jpg" alt="TelecomAnalysis.net Logo" class="footer-logo">
+                <img src="20240525_TA Logo.jpg" alt="TelecomAnalysis.net Logo" class="footer-logo">
                 🚀 Powered by <a href="https://telecomanalysis.net" target="_blank">TelecomAnalysis.net</a>
             </div>
             <div class="footer-links">
@@ -902,31 +902,20 @@
                     button.classList.add('active');
                     
                     // Filter data
-                    const filter = button.dataset.filter;
+                    const filter = button.getAttribute('data-filter');
                     let filteredData = allData;
                     
-                    switch (filter) {
-                        case 'critical':
+                    if (filter !== 'all') {
+                        if (filter === 'critical') {
                             filteredData = allData.filter(item => item.importance === 5);
-                            break;
-                        case 'high':
+                        } else if (filter === 'high') {
                             filteredData = allData.filter(item => item.importance === 4);
-                            break;
-                        case 'cybersecurity':
+                        } else {
+                            // Filter by category
                             filteredData = allData.filter(item => 
-                                item.category.toLowerCase().includes('cybersecurity'));
-                            break;
-                        case 'ai-telecom':
-                            filteredData = allData.filter(item => 
-                                item.category.toLowerCase().includes('ai') || 
-                                item.category.toLowerCase().includes('telecom'));
-                            break;
-                        case 'spectrum':
-                            filteredData = allData.filter(item => 
-                                item.category.toLowerCase().includes('spectrum'));
-                            break;
-                        default:
-                            filteredData = allData;
+                                item.category && item.category.toLowerCase().includes(filter.toLowerCase())
+                            );
+                        }
                     }
                     
                     displayNews(filteredData);
@@ -942,24 +931,31 @@
                 month: 'short',
                 day: 'numeric',
                 hour: '2-digit',
-                minute: '2-digit'
+                minute: '2-digit',
+                hour12: true
             });
-            document.getElementById('lastUpdateTime').textContent = timeString;
+            
+            const timestampElement = document.getElementById('lastUpdateTime');
+            if (timestampElement) {
+                timestampElement.textContent = timeString;
+            }
         }
 
         // Show error message
         function showError(message) {
             const newsContainer = document.getElementById('newsList');
-            newsContainer.innerHTML = `<div class="error">${message}</div>`;
+            if (newsContainer) {
+                newsContainer.innerHTML = `<div class="error">${message}</div>`;
+            }
             
-            // Show fallback metrics
+            // Reset metrics to show error state
             document.getElementById('totalItems').textContent = 'Error';
             document.getElementById('criticalItems').textContent = 'Error';
             document.getElementById('highPriorityItems').textContent = 'Error';
             document.getElementById('activeCategories').textContent = 'Error';
         }
 
-        // Initialize when DOM is ready
+        // Initialize dashboard when page loads
         document.addEventListener('DOMContentLoaded', initializeDashboard);
     </script>
 </body>
