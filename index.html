@@ -891,7 +891,7 @@
             }
         }
 
-        // Setup filter buttons
+        // Setup filter buttons - FIXED VERSION
         function setupFilters() {
             const filterButtons = document.querySelectorAll('.filter-btn');
             
@@ -910,14 +910,22 @@
                             filteredData = allData.filter(item => item.importance === 5);
                         } else if (filter === 'high') {
                             filteredData = allData.filter(item => item.importance === 4);
+                        } else if (filter === 'ai-telecom') {
+                            // FIXED: Proper matching for AI + TELECOM category
+                            filteredData = allData.filter(item => 
+                                item.category && 
+                                item.category.toLowerCase().includes('ai') && 
+                                item.category.toLowerCase().includes('telecom')
+                            );
                         } else {
-                            // Filter by category
+                            // Filter by category (for cybersecurity, spectrum, etc.)
                             filteredData = allData.filter(item => 
                                 item.category && item.category.toLowerCase().includes(filter.toLowerCase())
                             );
                         }
                     }
                     
+                    console.log(`Filter applied: ${filter}, Items found: ${filteredData.length}`);
                     displayNews(filteredData);
                 });
             });
