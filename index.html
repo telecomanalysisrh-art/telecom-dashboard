@@ -325,23 +325,6 @@
             font-size: 1.1em;
         }
 
-        .refresh-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9em;
-            margin-left: 10px;
-        }
-
-        .refresh-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
         /* Footer with branding */
         .footer {
             background: rgba(0, 0, 0, 0.3);
@@ -479,9 +462,7 @@
         <div class="dashboard-header">
             <h1 class="dashboard-title">📊 Telecom Intelligence Dashboard</h1>
             <p class="dashboard-subtitle">Real-time intelligence monitoring and analysis</p>
-            <p class="last-updated">Last updated: <span id="lastUpdateTime">Loading...</span>
-                <button class="refresh-btn" onclick="refreshDashboard()">🔄 Refresh Now</button>
-            </p>
+            <p class="last-updated">Last updated: <span id="lastUpdateTime">Loading...</span></p>
         </div>
 
         <!-- Metrics Cards -->
@@ -586,32 +567,20 @@
                 setupFilters();
                 updateTimestamp();
                 
-                // Auto-refresh every 10 minutes
+                // Auto-refresh every 30 minutes
                 setInterval(async () => {
                     console.log('🔄 Auto-refreshing dashboard data...');
-                    await refreshDashboard();
-                }, 10 * 60 * 1000);
+                    await loadData();
+                    updateMetrics();
+                    updateCharts();
+                    displayNews();
+                    updateTimestamp();
+                }, 30 * 60 * 1000);
                 
                 console.log('✅ Dashboard initialized successfully');
             } catch (error) {
                 console.error('❌ Error initializing dashboard:', error);
                 showError('Failed to load dashboard data. Please try refreshing the page.');
-            }
-        }
-
-        // Refresh dashboard
-        async function refreshDashboard() {
-            try {
-                document.getElementById('newsList').innerHTML = '<div class="loading">Refreshing data...</div>';
-                await loadData();
-                updateMetrics();
-                updateCharts();
-                displayNews();
-                updateTimestamp();
-                console.log('✅ Dashboard refreshed successfully');
-            } catch (error) {
-                console.error('❌ Error refreshing dashboard:', error);
-                showError('Failed to refresh data. Please try again.');
             }
         }
 
@@ -621,8 +590,6 @@
                 console.log('📊 Loading data from Google Sheets...');
                 
                 const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${CONFIG.RANGE}?key=${CONFIG.API_KEY}`;
-                console.log('Fetching from URL:', url);
-                
                 const response = await fetch(url);
                 
                 if (!response.ok) {
@@ -635,36 +602,22 @@
                     throw new Error('No data found in spreadsheet');
                 }
                 
-                console.log('Raw data received:', data.values.length, 'rows');
-                
                 // Process the data (skip header row)
                 allData = data.values.slice(1).map((row, index) => {
-                    // Handle empty rows
-                    if (!row || row.length < 3 || !row[2]) {
-                        return null;
-                    }
-                    
-                    const priority = parseInt(row[4]) || 2;
-                    const category = row[3] || '';
-                    
                     return {
                         id: index,
                         date: parseDate(row[0] || ''),
-                        source: row[1] || 'Unknown Source',
+                        source: row[1] || '',
                         title: row[2] || '',
-                        category: category,
-                        importance: priority,
-                        summary: row[5] || row[2] || '', // Use title as fallback for summary
+                        category: row[3] || '',
+                        importance: parseInt(row[4]) || 2,
+                        summary: row[5] || '',
                         keywords: row[6] || '',
                         url: row[7] || ''
                     };
-                }).filter(item => item !== null && item.title.trim() !== ''); // Remove empty rows
+                }).filter(item => item.title); // Remove empty rows
                 
-                console.log(`✅ Processed ${allData.length} intelligence items`);
-                
-                if (allData.length === 0) {
-                    throw new Error('No valid data found after processing');
-                }
+                console.log(`✅ Loaded ${allData.length} intelligence items`);
                 
             } catch (error) {
                 console.error('❌ Error loading data:', error);
@@ -708,12 +661,12 @@
             const total = allData.length;
             const critical = allData.filter(item => item.importance === 5).length;
             const high = allData.filter(item => item.importance === 4).length;
-            const categories = [...new Set(allData.map(item => item.category))].filter(cat => cat && cat.trim() !== '').length;
+            const categories = [...new Set(allData.map(item => item.category))].filter(cat => cat).length;
             
-            document.getElementById('totalItems').textContent = total.toLocaleString();
-            document.getElementById('criticalItems').textContent = critical.toLocaleString();
-            document.getElementById('highPriorityItems').textContent = high.toLocaleString();
-            document.getElementById('activeCategories').textContent = categories.toLocaleString();
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('criticalItems').textContent = critical;
+            document.getElementById('highPriorityItems').textContent = high;
+            document.getElementById('activeCategories').textContent = categories;
             
             console.log(`📊 Metrics updated: ${total} total, ${critical} critical, ${high} high priority, ${categories} categories`);
         }
@@ -728,11 +681,12 @@
         function updateCharts() {
             if (priorityChart) {
                 priorityChart.destroy();
+                createPriorityChart();
             }
             if (categoryChart) {
                 categoryChart.destroy();
+                createCategoryChart();
             }
-            createCharts();
         }
 
         // Create priority distribution chart
@@ -789,18 +743,10 @@
             
             const categoryCounts = {};
             allData.forEach(item => {
-                if (item.category && item.category.trim() !== '') {
+                if (item.category) {
                     categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
                 }
             });
-            
-            // Sort categories by count (descending)
-            const sortedCategories = Object.entries(categoryCounts)
-                .sort((a, b) => b[1] - a[1])
-                .reduce((obj, [key, value]) => {
-                    obj[key] = value;
-                    return obj;
-                }, {});
             
             const colors = [
                 '#4ade80', '#06b6d4', '#8b5cf6', '#f59e0b', '#ef4444',
@@ -810,11 +756,11 @@
             categoryChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(sortedCategories),
+                    labels: Object.keys(categoryCounts),
                     datasets: [{
                         label: 'Intelligence Items',
-                        data: Object.values(sortedCategories),
-                        backgroundColor: colors.slice(0, Object.keys(sortedCategories).length),
+                        data: Object.values(categoryCounts),
+                        backgroundColor: colors.slice(0, Object.keys(categoryCounts).length),
                         borderWidth: 2,
                         borderColor: 'rgba(255, 255, 255, 0.8)',
                         borderRadius: 8
@@ -864,7 +810,7 @@
             const dataToShow = filteredData || allData;
             
             if (dataToShow.length === 0) {
-                newsContainer.innerHTML = '<div class="loading">No intelligence items found for the selected filter.</div>';
+                newsContainer.innerHTML = '<div class="loading">No intelligence items found.</div>';
                 return;
             }
             
@@ -880,18 +826,18 @@
                 const priorityClass = getPriorityClass(item.importance);
                 const priorityText = getPriorityText(item.importance);
                 const dateStr = formatDate(item.date);
-                const isClickable = item.url && item.url.trim() !== '' && item.url.startsWith('http');
+                const isClickable = item.url && item.url.trim() !== '';
                 
                 return `
-                    <div class="news-item ${priorityClass}" ${isClickable ? `onclick="openArticle('${item.url.replace(/'/g, "\\'")}')"` : ''} 
+                    <div class="news-item ${priorityClass}" ${isClickable ? `onclick="openArticle('${item.url}')"` : ''} 
                          style="${isClickable ? 'cursor: pointer;' : 'cursor: default;'}">
                         <div class="news-date">${dateStr}</div>
                         <div class="news-title-text">${item.title}</div>
-                        <div class="news-summary">${item.summary || item.title}</div>
+                        <div class="news-summary">${item.summary}</div>
                         <div class="news-meta">
                             <div class="news-source">Source: ${item.source}</div>
                             <div class="news-badges">
-                                <span class="priority-badge ${priorityClass}">${priorityText} (${item.importance})</span>
+                                <span class="priority-badge ${priorityClass}">PRIORITY ${item.importance}</span>
                                 ${item.category ? `<span class="category-badge">${item.category}</span>` : ''}
                             </div>
                         </div>
@@ -905,7 +851,7 @@
 
         // Open article in new tab
         function openArticle(url) {
-            if (url && url.trim() !== '' && url.startsWith('http')) {
+            if (url && url.trim() !== '') {
                 window.open(url, '_blank');
             }
         }
@@ -917,7 +863,6 @@
                 case 4: return 'high';
                 case 3: return 'medium';
                 case 2: return 'low';
-                case 1: return 'low';
                 default: return 'low';
             }
         }
@@ -925,12 +870,11 @@
         // Get priority text
         function getPriorityText(importance) {
             switch (importance) {
-                case 5: return 'CRITICAL';
-                case 4: return 'HIGH';
-                case 3: return 'MEDIUM';
-                case 2: return 'LOW';
-                case 1: return 'MINIMAL';
-                default: return 'LOW';
+                case 5: return 'Critical';
+                case 4: return 'High';
+                case 3: return 'Medium';
+                case 2: return 'Low';
+                default: return 'Low';
             }
         }
 
@@ -940,9 +884,7 @@
                 return date.toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                    day: 'numeric'
                 });
             } catch (error) {
                 return 'Invalid Date';
@@ -972,7 +914,8 @@
                             // FIXED: Proper matching for AI + TELECOM category
                             filteredData = allData.filter(item => 
                                 item.category && 
-                                item.category.toLowerCase().includes('ai + telecom')
+                                item.category.toLowerCase().includes('ai') && 
+                                item.category.toLowerCase().includes('telecom')
                             );
                         } else {
                             // Filter by category (for cybersecurity, spectrum, etc.)
@@ -997,7 +940,6 @@
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
-                second: '2-digit',
                 hour12: true
             });
             
@@ -1015,13 +957,10 @@
             }
             
             // Reset metrics to show error state
-            const metrics = ['totalItems', 'criticalItems', 'highPriorityItems', 'activeCategories'];
-            metrics.forEach(metric => {
-                const element = document.getElementById(metric);
-                if (element) {
-                    element.textContent = 'Error';
-                }
-            });
+            document.getElementById('totalItems').textContent = 'Error';
+            document.getElementById('criticalItems').textContent = 'Error';
+            document.getElementById('highPriorityItems').textContent = 'Error';
+            document.getElementById('activeCategories').textContent = 'Error';
         }
 
         // Initialize dashboard when page loads
@@ -1029,3 +968,4 @@
     </script>
 </body>
 </html>
+
