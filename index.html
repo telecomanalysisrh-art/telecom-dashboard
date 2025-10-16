@@ -849,12 +849,55 @@
             newsContainer.innerHTML = newsHTML;
         }
 
-        // Open article in new tab
-        function openArticle(url) {
-            if (url && url.trim() !== '') {
-                window.open(url, '_blank');
+        // Open article with URL validation - IMPROVED VERSION
+function openArticle(url) {
+    if (!url || url.trim() === '') {
+        console.log('No URL provided');
+        alert('No article link available. This may be a Google Alert that needs manual processing.');
+        return;
+    }
+    
+    try {
+        // Clean the URL before opening
+        let cleanUrl = url.trim();
+        
+        console.log('Original URL:', cleanUrl);
+        
+        // If it's a Google redirect, try to extract the direct URL
+        if (cleanUrl.includes('google.com/url') && cleanUrl.includes('url=')) {
+            const urlMatch = cleanUrl.match(/[?&]url=([^&]+)/);
+            if (urlMatch) {
+                cleanUrl = decodeURIComponent(urlMatch[1]);
+                cleanUrl = cleanUrl.split('&')[0]; // Remove additional parameters
+                console.log('Extracted direct URL:', cleanUrl);
             }
         }
+        
+        // Validate the final URL
+        if (cleanUrl.startsWith('http') && !cleanUrl.includes('google.com/search')) {
+            console.log('Opening direct article URL:', cleanUrl);
+            window.open(cleanUrl, '_blank', 'noopener,noreferrer');
+        } else if (cleanUrl.includes('google.com/search')) {
+            console.log('Opening Google search URL:', cleanUrl);
+            window.open(cleanUrl, '_blank', 'noopener,noreferrer');
+        } else {
+            console.log('Invalid URL format, using fallback search');
+            // Get the title for better search
+            const newsItem = event.target.closest('.news-item');
+            const title = newsItem ? newsItem.querySelector('.news-title-text').textContent : 'telecom news';
+            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(title)}`;
+            window.open(searchUrl, '_blank', 'noopener,noreferrer');
+        }
+        
+    } catch (error) {
+        console.error('Error opening article:', error);
+        // Ultimate fallback
+        const newsItem = event.target.closest('.news-item');
+        const title = newsItem ? newsItem.querySelector('.news-title-text').textContent : 'telecom news';
+        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(title)}`;
+        window.open(searchUrl, '_blank', 'noopener,noreferrer');
+    }
+}
 
         // Get priority CSS class
         function getPriorityClass(importance) {
