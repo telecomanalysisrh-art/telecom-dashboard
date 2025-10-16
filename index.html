@@ -1,4 +1,549 @@
-        <script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telecom Intelligence Dashboard - Powered by TelecomAnalysis.net</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* Header with branding and logo */
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px 0;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            height: 60px;
+            width: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-text {
+            color: white;
+            text-decoration: none;
+            font-size: 1.8em;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-text:hover {
+            color: #ffd700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+            transform: scale(1.02);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-title {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .dashboard-subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .last-updated {
+            font-size: 1em;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .metric-number {
+            font-size: 3.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .metric-label {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chart-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .chart-canvas {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .news-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .news-title {
+            font-size: 2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .news-list {
+            display: grid;
+            gap: 20px;
+        }
+
+        .news-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 5px solid #4ade80;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .news-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .news-item.critical {
+            border-left-color: #ef4444;
+        }
+
+        .news-item.high {
+            border-left-color: #f59e0b;
+        }
+
+        .news-item.medium {
+            border-left-color: #06b6d4;
+        }
+
+        .news-date {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .news-title-text {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .news-summary {
+            font-size: 1em;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .news-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .news-source {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .news-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .priority-badge, .category-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .priority-badge.critical {
+            background: #ef4444;
+            color: white;
+        }
+
+        .priority-badge.high {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .priority-badge.medium {
+            background: #06b6d4;
+            color: white;
+        }
+
+        .priority-badge.low {
+            background: #6b7280;
+            color: white;
+        }
+
+        .category-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ef4444;
+            font-size: 1.1em;
+        }
+
+        /* Footer with branding */
+        .footer {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 50px;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer-branding {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .footer-logo {
+            height: 40px;
+            width: auto;
+            border-radius: 6px;
+        }
+
+        .footer-branding a {
+            color: #ffd700;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .footer-branding a:hover {
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+            transform: scale(1.05);
+            display: inline-block;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .footer-copyright {
+            font-size: 0.9em;
+            opacity: 0.7;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .header-text {
+                font-size: 1.4em;
+                text-align: center;
+            }
+
+            .logo {
+                height: 50px;
+            }
+
+            .dashboard-title {
+                font-size: 2.2em;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+            }
+            
+            .charts-section {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .news-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-buttons {
+                justify-content: center;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .footer-branding {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with logo and main website link -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo-container">
+                <img src="20240525_TA Logo.jpg" alt="TelecomAnalysis.net Logo" class="logo">
+            </div>
+            <a href="https://telecomanalysis.net" target="_blank" class="header-text">
+                🌐 Visit TelecomAnalysis.net - Your Source for Telecom Intelligence
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">📊 Telecom Intelligence Dashboard</h1>
+            <p class="dashboard-subtitle">Real-time intelligence monitoring and analysis</p>
+            <p class="last-updated">Last updated: <span id="lastUpdateTime">Loading...</span></p>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-number" style="color: #4ade80;" id="totalItems">Loading...</div>
+                <div class="metric-label">Intelligence Items</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-number" style="color: #ef4444;" id="criticalItems">Loading...</div>
+                <div class="metric-label">Critical Alerts</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-number" style="color: #f59e0b;" id="highPriorityItems">Loading...</div>
+                <div class="metric-label">High Priority</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-number" style="color: #06b6d4;" id="activeCategories">Loading...</div>
+                <div class="metric-label">Active Categories</div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-container">
+                <h3 class="chart-title">Priority Distribution</h3>
+                <div class="chart-canvas">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-container">
+                <h3 class="chart-title">Category Breakdown</h3>
+                <div class="chart-canvas">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- News Section -->
+        <div class="news-section">
+            <div class="news-header">
+                <h2 class="news-title">
+                    📰 Latest Intelligence Updates
+                </h2>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All Items</button>
+                    <button class="filter-btn" data-filter="critical">Critical</button>
+                    <button class="filter-btn" data-filter="high">High Priority</button>
+                    <button class="filter-btn" data-filter="cybersecurity">Cybersecurity</button>
+                    <button class="filter-btn" data-filter="ai-telecom">AI + Telecom</button>
+                    <button class="filter-btn" data-filter="spectrum">Spectrum</button>
+                </div>
+            </div>
+            <div class="news-list" id="newsList">
+                <div class="loading">Loading latest intelligence updates...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer with branding and links -->
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-branding">
+                <img src="20240525_TA Logo.jpg" alt="TelecomAnalysis.net Logo" class="footer-logo">
+                🚀 Powered by <a href="https://telecomanalysis.net" target="_blank">TelecomAnalysis.net</a>
+            </div>
+            <div class="footer-links">
+                <a href="https://telecomanalysis.net" target="_blank">Home</a>
+                <a href="https://telecomanalysis.net/about-telecom-analysis" target="_blank">About</a>
+                <a href="https://telecomanalysis.net/insights" target="_blank">Insights</a>
+                <a href="https://telecomanalysis.net/telecom-intelligence-dashboard" target="_blank">Dashboard Info</a>
+                <a href="https://telecomanalysis.net/free-courses" target="_blank">Free Courses</a>
+                <a href="https://telecomanalysis.net/announcement" target="_blank">Announcements</a>
+            </div>
+            <div class="footer-copyright">
+                © 2025 TelecomAnalysis.net - Advanced Telecom Intelligence & Analysis Platform
+            </div>
+        </div>
+    </div>
+
+    <script>
         // Configuration - UPDATED
         const CONFIG = {
             SHEET_ID: '1RmpfjtzKsR-ZqeiHxya8z_hfyOw32H4KOBQ5X5nCj8g',
@@ -149,6 +694,17 @@
                     summary: 'Emerging threats require immediate attention from network security teams.',
                     keywords: 'security, threats, infrastructure',
                     url: 'https://telecomanalysis.net'
+                },
+                {
+                    id: 3,
+                    date: new Date(Date.now() - 172800000),
+                    source: 'Market Intelligence',
+                    title: 'AI Integration Transforming Telecom Operations',
+                    category: 'AI + TELECOM',
+                    importance: 3,
+                    summary: 'Artificial intelligence solutions are being adopted for network optimization and customer service.',
+                    keywords: 'AI, automation, operations',
+                    url: 'https://telecomanalysis.net'
                 }
             ];
             
@@ -158,3 +714,395 @@
             
             showError('Using sample data. Real data connection failed. Please make sure your Google Sheet is set to "Anyone with link can view".');
         }
+
+        // Parse date with multiple format support
+        function parseDate(dateStr) {
+            if (!dateStr) return new Date();
+            
+            try {
+                // Handle various date formats
+                const formats = [
+                    /^\d{1,2}\/\d{1,2}\/\d{4}/, // MM/DD/YYYY or M/D/YYYY
+                    /^\d{4}-\d{2}-\d{2}/, // YYYY-MM-DD
+                    /^\d{1,2}-\d{1,2}-\d{4}/, // MM-DD-YYYY or M-D-YYYY
+                ];
+                
+                for (let format of formats) {
+                    if (format.test(dateStr)) {
+                        const parsed = new Date(dateStr);
+                        if (!isNaN(parsed.getTime())) {
+                            return parsed;
+                        }
+                    }
+                }
+                
+                // If all else fails, try direct parsing
+                const parsed = new Date(dateStr);
+                return isNaN(parsed.getTime()) ? new Date() : parsed;
+                
+            } catch (error) {
+                console.warn('Date parsing error:', error);
+                return new Date();
+            }
+        }
+
+        // Update metrics display
+        function updateMetrics() {
+            const total = allData.length;
+            const critical = allData.filter(item => item.importance === 5).length;
+            const high = allData.filter(item => item.importance === 4).length;
+            const categories = [...new Set(allData.map(item => item.category))].filter(cat => cat).length;
+            
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('criticalItems').textContent = critical;
+            document.getElementById('highPriorityItems').textContent = high;
+            document.getElementById('activeCategories').textContent = categories;
+            
+            console.log(`📊 Metrics updated: ${total} total, ${critical} critical, ${high} high priority, ${categories} categories`);
+        }
+
+        // Create charts
+        function createCharts() {
+            createPriorityChart();
+            createCategoryChart();
+        }
+
+        // Update existing charts
+        function updateCharts() {
+            if (priorityChart) {
+                priorityChart.destroy();
+                createPriorityChart();
+            }
+            if (categoryChart) {
+                categoryChart.destroy();
+                createCategoryChart();
+            }
+        }
+
+        // Create priority distribution chart
+        function createPriorityChart() {
+            const ctx = document.getElementById('priorityChart').getContext('2d');
+            
+            const priorityCounts = {
+                'Critical (5)': allData.filter(item => item.importance === 5).length,
+                'High (4)': allData.filter(item => item.importance === 4).length,
+                'Medium (3)': allData.filter(item => item.importance === 3).length,
+                'Low (2)': allData.filter(item => item.importance === 2).length,
+                'Minimal (1)': allData.filter(item => item.importance === 1).length
+            };
+            
+            priorityChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(priorityCounts),
+                    datasets: [{
+                        data: Object.values(priorityCounts),
+                        backgroundColor: [
+                            '#ef4444', // Critical - Red
+                            '#f59e0b', // High - Orange
+                            '#06b6d4', // Medium - Blue
+                            '#6b7280', // Low - Gray
+                            '#9ca3af'  // Minimal - Light Gray
+                        ],
+                        borderWidth: 2,
+                        borderColor: 'rgba(255, 255, 255, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: 'white',
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Create category breakdown chart
+        function createCategoryChart() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            
+            const categoryCounts = {};
+            allData.forEach(item => {
+                if (item.category) {
+                    categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
+                }
+            });
+            
+            const colors = [
+                '#4ade80', '#06b6d4', '#8b5cf6', '#f59e0b', '#ef4444',
+                '#10b981', '#3b82f6', '#a855f7', '#f97316', '#dc2626'
+            ];
+            
+            categoryChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(categoryCounts),
+                    datasets: [{
+                        label: 'Intelligence Items',
+                        data: Object.values(categoryCounts),
+                        backgroundColor: colors.slice(0, Object.keys(categoryCounts).length),
+                        borderWidth: 2,
+                        borderColor: 'rgba(255, 255, 255, 0.8)',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: 'white',
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white',
+                                font: {
+                                    size: 11
+                                },
+                                maxRotation: 45
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Display news items - UPDATED FUNCTION
+        function displayNews(filteredData = null) {
+            const newsContainer = document.getElementById('newsList');
+            const dataToShow = filteredData || allData;
+            
+            if (dataToShow.length === 0) {
+                newsContainer.innerHTML = '<div class="loading">No intelligence items found.</div>';
+                return;
+            }
+            
+            // Sort by importance (highest first), then by date (newest first)
+            const sortedData = dataToShow.sort((a, b) => {
+                if (a.importance !== b.importance) {
+                    return b.importance - a.importance;
+                }
+                return new Date(b.date) - new Date(a.date);
+            });
+            
+            const newsHTML = sortedData.map(item => {
+                const priorityClass = getPriorityClass(item.importance);
+                const priorityText = getPriorityText(item.importance);
+                const dateStr = formatDate(item.date);
+                const isClickable = item.url && item.url.trim() !== '';
+                
+                return `
+                    <div class="news-item ${priorityClass}" ${isClickable ? `onclick="openArticle('${item.url}', event)"` : ''} 
+                         style="${isClickable ? 'cursor: pointer;' : 'cursor: default;'}">
+                        <div class="news-date">${dateStr}</div>
+                        <div class="news-title-text">${item.title}</div>
+                        <div class="news-summary">${item.summary}</div>
+                        <div class="news-meta">
+                            <div class="news-source">Source: ${item.source}</div>
+                            <div class="news-badges">
+                                <span class="priority-badge ${priorityClass}">PRIORITY ${item.importance}</span>
+                                ${item.category ? `<span class="category-badge">${item.category}</span>` : ''}
+                            </div>
+                        </div>
+                        ${isClickable ? '<div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">🔗 Click to read full article</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            newsContainer.innerHTML = newsHTML;
+        }
+
+        // Open article with URL validation - NEW FUNCTION
+        function openArticle(url, event) {
+            console.log('🔗 Opening article with URL:', url);
+            
+            if (!url || url.trim() === '') {
+                console.log('❌ No URL provided');
+                // Try to get title for search
+                const title = event.target.closest('.news-item').querySelector('.news-title-text').textContent;
+                const searchUrl = `https://www.google.com/search?q="${encodeURIComponent(title)}"`;
+                window.open(searchUrl, '_blank', 'noopener,noreferrer');
+                return;
+            }
+            
+            let finalUrl = url.trim();
+            
+            try {
+                // Fix Google redirect URLs
+                if (finalUrl.includes('google.com/url') && finalUrl.includes('url=')) {
+                    console.log('🔄 Detected Google redirect, extracting direct URL...');
+                    const urlMatch = finalUrl.match(/[?&]url=([^&]+)/);
+                    if (urlMatch) {
+                        finalUrl = decodeURIComponent(urlMatch[1]);
+                        finalUrl = finalUrl.split('&')[0];
+                        console.log('✅ Extracted direct URL:', finalUrl);
+                    }
+                }
+                
+                // Validate URL
+                if (!finalUrl.startsWith('http')) {
+                    throw new Error('Invalid URL protocol');
+                }
+                
+                console.log('🎯 Opening final URL:', finalUrl);
+                window.open(finalUrl, '_blank', 'noopener,noreferrer');
+                
+            } catch (error) {
+                console.error('❌ URL processing failed:', error);
+                // Ultimate fallback
+                const title = event.target.closest('.news-item').querySelector('.news-title-text').textContent;
+                const searchUrl = `https://www.google.com/search?q="${encodeURIComponent(title)}"`;
+                window.open(searchUrl, '_blank', 'noopener,noreferrer');
+            }
+        }
+
+        // Get priority CSS class
+        function getPriorityClass(importance) {
+            switch (importance) {
+                case 5: return 'critical';
+                case 4: return 'high';
+                case 3: return 'medium';
+                case 2: return 'low';
+                default: return 'low';
+            }
+        }
+
+        // Get priority text
+        function getPriorityText(importance) {
+            switch (importance) {
+                case 5: return 'Critical';
+                case 4: return 'High';
+                case 3: return 'Medium';
+                case 2: return 'Low';
+                default: return 'Low';
+            }
+        }
+
+        // Format date for display
+        function formatDate(date) {
+            try {
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            } catch (error) {
+                return 'Invalid Date';
+            }
+        }
+
+        // Setup filter buttons - FIXED VERSION
+        function setupFilters() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Update active button
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Filter data
+                    const filter = button.getAttribute('data-filter');
+                    let filteredData = allData;
+                    
+                    if (filter !== 'all') {
+                        if (filter === 'critical') {
+                            filteredData = allData.filter(item => item.importance === 5);
+                        } else if (filter === 'high') {
+                            filteredData = allData.filter(item => item.importance === 4);
+                        } else if (filter === 'ai-telecom') {
+                            // FIXED: Proper matching for AI + TELECOM category
+                            filteredData = allData.filter(item => 
+                                item.category && 
+                                item.category.toLowerCase().includes('ai') && 
+                                item.category.toLowerCase().includes('telecom')
+                            );
+                        } else {
+                            // Filter by category (for cybersecurity, spectrum, etc.)
+                            filteredData = allData.filter(item => 
+                                item.category && item.category.toLowerCase().includes(filter.toLowerCase())
+                            );
+                        }
+                    }
+                    
+                    console.log(`Filter applied: ${filter}, Items found: ${filteredData.length}`);
+                    displayNews(filteredData);
+                });
+            });
+        }
+
+        // Update timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+            
+            const timestampElement = document.getElementById('lastUpdateTime');
+            if (timestampElement) {
+                timestampElement.textContent = timeString;
+            }
+        }
+
+        // Show error message - UPDATED
+        function showError(message) {
+            const newsContainer = document.getElementById('newsList');
+            if (newsContainer) {
+                newsContainer.innerHTML = `
+                    <div class="error">
+                        <h3>⚠️ Dashboard Notice</h3>
+                        <p>${message}</p>
+                        <p><small>If this persists, please check:</small></p>
+                        <ul style="text-align: left; margin: 10px 0;">
+                            <li>Google Sheet is set to "Anyone with link can view"</li>
+                            <li>Sheet contains data in columns A-H</li>
+                            <li>Internet connection is active</li>
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Set metrics to show loading state instead of error
+            document.getElementById('totalItems').textContent = 'Loading...';
+            document.getElementById('criticalItems').textContent = 'Loading...';
+            document.getElementById('highPriorityItems').textContent = 'Loading...';
+            document.getElementById('activeCategories').textContent = 'Loading...';
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+    </script>
+</body>
+</html>
