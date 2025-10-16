@@ -829,7 +829,7 @@
                 const isClickable = item.url && item.url.trim() !== '';
                 
                 return `
-                    <div class="news-item ${priorityClass}" ${isClickable ? `onclick="openArticle('${item.url}')"` : ''} 
+                    <div class="news-item ${priorityClass}" ${isClickable ? `onclick="openArticle('${item.url}', event)"` : ''} 
                          style="${isClickable ? 'cursor: pointer;' : 'cursor: default;'}">
                         <div class="news-date">${dateStr}</div>
                         <div class="news-title-text">${item.title}</div>
