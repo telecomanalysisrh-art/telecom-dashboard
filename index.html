@@ -1,8 +1,8 @@
         <script>
-        // Configuration
+        // Configuration - UPDATED
         const CONFIG = {
             SHEET_ID: '1RmpfjtzKsR-ZqeiHxya8z_hfyOw32H4KOBQ5X5nCj8g',
-            API_KEY: 'AIzaSyD7dSwXHfYDixVCOUln-O--62IwXwyf5uM',
+            // API_KEY removed - using public access
             RANGE: 'Sheet1!A:H'
         };
 
@@ -10,7 +10,7 @@
         let priorityChart = null;
         let categoryChart = null;
 
-        // Initialize dashboard
+        // Initialize dashboard - UPDATED
         async function initializeDashboard() {
             console.log('🚀 Initializing Telecom Intelligence Dashboard...');
             
@@ -22,60 +22,139 @@
                 setupFilters();
                 updateTimestamp();
                 
-                // Auto-refresh every 30 minutes
-                setInterval(async () => {
-                    console.log('🔄 Auto-refreshing dashboard data...');
-                    await loadData();
-                    updateMetrics();
-                    updateCharts();
-                    displayNews();
-                    updateTimestamp();
-                }, 30 * 60 * 1000);
-                
                 console.log('✅ Dashboard initialized successfully');
             } catch (error) {
                 console.error('❌ Error initializing dashboard:', error);
-                showError('Failed to load dashboard data. Please try refreshing the page.');
+                showError('Failed to load dashboard data. Please check the spreadsheet settings.');
+                
+                // Load sample data for demonstration
+                loadSampleData();
             }
         }
 
-        // Load data from Google Sheets
+        // Load data from Google Sheets - COMPLETELY REPLACED
         async function loadData() {
             try {
                 console.log('📊 Loading data from Google Sheets...');
                 
-                const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${CONFIG.RANGE}?key=${CONFIG.API_KEY}`;
+                // Method 1: Using Google Sheets JSON API (no API key needed for public sheets)
+                const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:json&tq=SELECT%20A,B,C,D,E,F,G,H&sheet=Sheet1`;
+                
                 const response = await fetch(url);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                const data = await response.json();
+                const text = await response.text();
+                console.log('Raw response received');
                 
-                if (!data.values || data.values.length < 2) {
-                    throw new Error('No data found in spreadsheet');
+                // Parse the Google Visualization API response
+                const json = JSON.parse(text.substring(47, text.length - 2));
+                
+                if (!json.table || !json.table.rows) {
+                    throw new Error('No data found in spreadsheet response');
                 }
                 
-                // Process the data (skip header row)
-                allData = data.values.slice(1).map((row, index) => {
+                // Process the data
+                allData = json.table.rows.map((row, index) => {
+                    const cells = row.c;
                     return {
                         id: index,
-                        date: parseDate(row[0] || ''),
-                        source: row[1] || '',
-                        title: row[2] || '',
-                        category: row[3] || '',
-                        importance: parseInt(row[4]) || 2,
-                        summary: row[5] || '',
-                        keywords: row[6] || '',
-                        url: row[7] || ''
+                        date: parseDate(cells[0] ? cells[0].v : ''),
+                        source: cells[1] ? cells[1].v : '',
+                        title: cells[2] ? cells[2].v : '',
+                        category: cells[3] ? cells[3].v : '',
+                        importance: cells[4] ? parseInt(cells[4].v) || 2 : 2,
+                        summary: cells[5] ? cells[5].v : '',
+                        keywords: cells[6] ? cells[6].v : '',
+                        url: cells[7] ? cells[7].v : ''
                     };
                 }).filter(item => item.title); // Remove empty rows
                 
                 console.log(`✅ Loaded ${allData.length} intelligence items`);
                 
             } catch (error) {
-                console.error('❌ Error loading data:', error);
-                throw error;
+                console.error('❌ Error loading data from Sheets:', error);
+                
+                // Try alternative method - CSV export
+                try {
+                    console.log('🔄 Trying alternative data loading method...');
+                    await loadDataAlternative();
+                } catch (altError) {
+                    console.error('❌ Alternative method also failed:', altError);
+                    throw new Error('Could not load data from spreadsheet. Please make sure the sheet is published to the web.');
+                }
             }
+        }
+
+        // Alternative data loading method - NEW FUNCTION
+        async function loadDataAlternative() {
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=0`;
+            
+            const response = await fetch(csvUrl);
+            if (!response.ok) {
+                throw new Error(`CSV export failed: ${response.status}`);
+            }
+            
+            const csvText = await response.text();
+            const lines = csvText.split('\n').filter(line => line.trim());
+            
+            if (lines.length < 2) {
+                throw new Error('No data in CSV export');
+            }
+            
+            // Skip header row
+            allData = lines.slice(1).map((line, index) => {
+                const columns = line.split(','); // Simple CSV parsing
+                return {
+                    id: index,
+                    date: parseDate(columns[0] || ''),
+                    source: columns[1] || '',
+                    title: columns[2] || '',
+                    category: columns[3] || '',
+                    importance: parseInt(columns[4]) || 2,
+                    summary: columns[5] || '',
+                    keywords: columns[6] || '',
+                    url: columns[7] || ''
+                };
+            }).filter(item => item.title);
+            
+            console.log(`✅ Loaded ${allData.length} items via CSV`);
+        }
+
+        // Load sample data for demonstration - NEW FUNCTION
+        function loadSampleData() {
+            console.log('📋 Loading sample data for demonstration...');
+            
+            allData = [
+                {
+                    id: 1,
+                    date: new Date(),
+                    source: 'Telecom Analysis',
+                    title: '5G Network Expansion Accelerates in European Markets',
+                    category: '5G TECHNOLOGY',
+                    importance: 4,
+                    summary: 'Major telecom operators announce accelerated 5G deployment schedules across key European markets.',
+                    keywords: '5G, Europe, deployment',
+                    url: 'https://telecomanalysis.net'
+                },
+                {
+                    id: 2,
+                    date: new Date(Date.now() - 86400000),
+                    source: 'Security Watch',
+                    title: 'New Cybersecurity Threats Target Telecom Infrastructure',
+                    category: 'CYBERSECURITY',
+                    importance: 5,
+                    summary: 'Emerging threats require immediate attention from network security teams.',
+                    keywords: 'security, threats, infrastructure',
+                    url: 'https://telecomanalysis.net'
+                }
+            ];
+            
+            updateMetrics();
+            createCharts();
+            displayNews();
+            
+            showError('Using sample data. Real data connection failed. Please make sure your Google Sheet is set to "Anyone with link can view".');
         }
